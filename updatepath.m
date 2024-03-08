@@ -1,8 +1,17 @@
 function updatepath()
     fullpath = mfilename('fullpath');
-    [projectDirectory, ~, ~] = fileparts(fullpath);
-    addpath(projectDirectory)
-    fprintf('Added %s to path successfuly\n', projectDirectory)
-    toastdir = fullfile(projectDirectory,'Toast_app\toastpp-2.0.2\mtoast2_install.m');
+    [Projectdir, ~, ~] = fileparts(fullpath);
+    addpath(Projectdir);
+    fprintf('Added %s to path successfuly\n', Projectdir);
+    Directory = fullfile(Projectdir,'Auxiliary Functions');
+    addpath(Directory);
+    fprintf('Added %s to path successfuly\n', Directory);
+    Directory = fullfile(Projectdir,'Auxiliary Variables');
+    addpath(Directory);
+    fprintf('Added %s to path successfuly\n', Directory);
+    Directory = fullfile(Projectdir,'MESH');
+    addpath(Directory);
+    fprintf('Added %s to path successfuly\n', Directory);
+    toastdir = fullfile(Projectdir,'Toast_app\toastpp-2.0.2\mtoast2_install.m');
     run(toastdir)
 end

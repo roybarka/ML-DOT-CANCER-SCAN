@@ -56,22 +56,23 @@ title('mesh and source-detector display')
 z_delta = 0;
 Q_z_pos = maxZ + z_delta; % Z position above the mesh
 M_z_pos = minZ - z_delta; % Z position below the mesh
-nqm = 12; % Number of sources and detectors in one dimension
+nqm = 5; % Number of sources and detectors in one dimension
 
 Q = zeros(nqm^2, 3); % Initialize source positions
 M = zeros(nqm^2, 3); % Initialize detector positions
 
-% Source & Detector positions above and below the centered sphere
-for i = 1:nqm
-    for j = 1:nqm
-        x = minX + (maxX - minX)*j/nqm;
-        y = minY + (maxY - minY)*i/nqm;
-        temp = Q_z_pos;
-        Q_z_pos = M_z_pos;
-        M_z_pos = temp;
+index = 1; % Initialize a separate index for filling Q and M
+for i = 1:nqm+1
+    for j = 1:nqm+1
+        x = minX + (maxX - minX)*(j-1)/nqm;
+        y = minY + (maxY - minY)*(i-1)/nqm;
 
-        Q((i-1)*nqm + j,:) = [x, y, Q_z_pos];
-        M((i-1)*nqm + j,:) = [x, y, M_z_pos];
+        % Assign calculated positions to Q and M using the separate index
+        Q(index,:) = [x, y, Q_z_pos];
+        M(index,:) = [x, y, M_z_pos];
+        
+        % Increment the index after each assignment
+        index = index + 1;
     end
 end
 
