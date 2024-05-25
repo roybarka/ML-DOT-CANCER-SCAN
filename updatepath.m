@@ -3,10 +3,10 @@ function updatepath()
     [Projectdir, ~, ~] = fileparts(fullpath);
     addpath(Projectdir);
     fprintf('Added %s to path successfuly\n', Projectdir);
-    Directory = fullfile(Projectdir,'Auxiliary Functions');
+    Directory = fullfile(Projectdir,'Auxiliary_Functions');
     addpath(Directory);
     fprintf('Added %s to path successfuly\n', Directory);
-    Directory = fullfile(Projectdir,'Auxiliary Variables');
+    Directory = fullfile(Projectdir,'Auxiliary_Variables');
     addpath(Directory);
     fprintf('Added %s to path successfuly\n', Directory);
     Directory = fullfile(Projectdir,'MESH');
