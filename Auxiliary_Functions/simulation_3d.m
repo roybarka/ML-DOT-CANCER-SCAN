@@ -7,7 +7,7 @@ function simulation_3d(mat_path,mua_bkg, mus_bkg,ref_bkg)
     [mesh_refined, tumor_nodes_idx] = project_meshrefine(mesh.ForwardMesh,centroid,radius,0.1);
     
     [simpath, ~, ~] = fileparts(mat_path);
-    filename = 'mesh_refined.msh';
+    filename = 'Refined_Mesh.msh';
     msh_path = fullfile(simpath,filename);
     
     conv_nodes_elements_arrays_to_msh(mesh_refined.node,mesh_refined.elem,msh_path,4);
@@ -93,7 +93,12 @@ function simulation_3d(mat_path,mua_bkg, mus_bkg,ref_bkg)
     K = dotSysmat(mesh,mua,mus,ref);
     Phi = K\qvec;
     Y = mvec.' * Phi;
+       
+    % Save simulation results and config
+    save(fullfile(simpath, 'simulation_config_and_results.mat'), 'Y', 'Q', 'M', 'mus', 'mua', 'ref', 'centroid', 'radius', 'tumor_nodes_idx');
     
+    % Solve homogenous for clearer display
+
     mua(tumor_nodes_idx) = mua_bkg;
     mus(tumor_nodes_idx) = mus_bkg;
     K = dotSysmat(mesh,mua,mus,ref);
