@@ -1,4 +1,4 @@
-function simulation_3d(mat_path,mua_bkg, mus_bkg,ref_bkg,radius,nqm, multiple_flag)
+function simulation_3d(mat_path,mua_bkg, mus_bkg,ref_bkg,tumor_mua,tumor_mus,radius,nqm, multiple_flag)
        
     mesh = open(mat_path);
     randRowIndex = randi(size(mesh.ForwardMesh.node, 1)); % Generate a random row index
@@ -28,8 +28,8 @@ function simulation_3d(mat_path,mua_bkg, mus_bkg,ref_bkg,radius,nqm, multiple_fl
     mus = ones(nnd,1)*mus_bkg;
     ref = ones(nnd,1) * ref_bkg;
     
-    mua(tumor_nodes_idx) = randi([1,3]) / 10;
-    mus(tumor_nodes_idx) = randi([20,40]);
+    mua(tumor_nodes_idx) = tumor_mua;
+    mus(tumor_nodes_idx) = tumor_mus;
     
     if ~multiple_flag
         figure
