@@ -12,6 +12,10 @@ function updatepath()
     Directory = fullfile(Projectdir,'MESH');
     addpath(Directory);
     fprintf('Added %s to path successfuly\n', Directory);
+    Directory = fullfile(Projectdir,'DOT_Simulating_Tool');
+    addpath(Directory);
+    fprintf('Added %s to path successfuly\n', Directory);
     toastdir = fullfile(Projectdir,'Toast_app\toastpp-2.0.2\mtoast2_install.m');
-    run(toastdir)
+    run(toastdir);
+    cd(Projectdir);
 end
