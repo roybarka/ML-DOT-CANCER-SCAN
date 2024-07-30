@@ -1,6 +1,10 @@
 function [nodes, elements] = conv_msh_to_nodes_elements_arrays(input_path,output_path)
     % Read the .msh file and extract nodes and elements into arrays
     % filePath: String with the path to the .msh file
+    
+    if nargin < 2
+        output_path = ''; % Set default value if output_path is not provided
+    end
 
     % Open the file for reading
     fileID = fopen(input_path, 'r');
@@ -35,7 +39,9 @@ function [nodes, elements] = conv_msh_to_nodes_elements_arrays(input_path,output
     % Close the file
     fclose(fileID);
 
-    ForwardMesh.node = nodes;
-    ForwardMesh.elem = elements;
-    save(output_path,"ForwardMesh");
+    if ~isempty(output_path)
+        ForwardMesh.node = nodes;
+        ForwardMesh.elem = elements;
+        save(output_path,"ForwardMesh");
+    end
 end
