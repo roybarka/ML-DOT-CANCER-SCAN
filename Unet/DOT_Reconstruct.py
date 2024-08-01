@@ -78,7 +78,7 @@ def select_folder_and_process_files(max_len=16384):
 
     if not folder_path:
         print("No folder selected.")
-        return None, None, None
+        return None, None, None, None, None, None, None, None, None, None
 
     Y_data = []
     mus_data = []
@@ -140,12 +140,14 @@ def train_model():
 
     Y, mus, mua, _, _, _, _, _, _, _ = select_folder_and_process_files()
 
+    if Y is None:
+        return
+
     # Dataset preparation
     dataset = DOTDataset(Y, mus, mua)
     train_size = int(0.8 * len(dataset))
     val_size = len(dataset) - train_size
     train_dataset, val_dataset = random_split(dataset, [train_size, val_size])
-
     train_loader = DataLoader(train_dataset, batch_size=16, shuffle=True)
     val_loader = DataLoader(val_dataset, batch_size=16, shuffle=False)
 
@@ -162,12 +164,34 @@ def train_model():
                                                          filetypes=[('PyTorch Model', '*.pth')])
             if not state_dict_path:
                 print("No state dict selected.")
+                return
             else:
                 model.load_state_dict(torch.load(state_dict_path))
 
+    choice = ''
+    while not choice.isdigit():
+        choice = input("Enter number of epochs: ")
+        if choice.isdigit():
+            number = int(choice)
+            if number > 0:
+                num_epochs = number
+            else:
+                print("Invalid input. Please enter a valid positive integer number.")
+
+    while True:
+        user_input = input("Enter learning rate: ")
+        try:
+            lr = float(user_input)
+            if lr > 0:
+                break
+            else:
+                print("The number must be greater than 0. Try again.")
+        except ValueError:
+            print("Invalid input. Please enter a valid positive floating-point number.")
+
     # Define loss function and optimizer
     criterion = nn.MSELoss()
-    optimizer = optim.Adam(model.parameters(), lr=0.001)
+    optimizer = optim.Adam(model.parameters(), lr=lr)
 
     best_val_loss = float('inf')
 
@@ -177,7 +201,7 @@ def train_model():
     best_model_path = os.path.join(save_dir, 'best_model.pth')
 
     # Training loop
-    num_epochs = 100
+
     for epoch in range(num_epochs):
         model.train()
         running_loss = 0.0

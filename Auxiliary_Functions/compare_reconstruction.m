@@ -1,4 +1,7 @@
 function compare_reconstruction()
+    
+    close all;
+
     % Ask user to select the folder
     folder_path = uigetdir('', 'Select Folder');
     
@@ -10,6 +13,14 @@ function compare_reconstruction()
     % Get all subfolders
     subfolders = genpath(folder_path);
     subfolders = strsplit(subfolders, ';');
+    subfolders = subfolders(2:end);
+    
+    % Create a figure and subplots once
+    hFig = figure;
+    hAxes(1) = subplot(2, 2, 1);
+    hAxes(2) = subplot(2, 2, 2);
+    hAxes(3) = subplot(2, 2, 3);
+    hAxes(4) = subplot(2, 2, 4);
     
     for i = 1:length(subfolders)
         subfolder = subfolders{i};
@@ -33,37 +44,43 @@ function compare_reconstruction()
             % Check for the required variables
             if isfield(config_data, 'mus') && isfield(config_data, 'mua')
                 
-                reconstructed_mus = reconstructed_mus.reconstructed_mus';
-                reconstructed_mua = reconstructed_mua.reconstructed_mua';
                 original_mus = config_data.mus;
                 original_mua = config_data.mua;
+                reconstructed_mus = reconstructed_mus.reconstructed_mus';
+                reconstructed_mus = reconstructed_mus(1:length(original_mus));
+                reconstructed_mua = reconstructed_mua.reconstructed_mua';
+                reconstructed_mua = reconstructed_mua(1:length(original_mua));                
                 
-                % Display the figures
-                figure;
-                subplot(2, 2, 1);
-                display_3d_mesh(nodes, elements, original_mus, 'Original mus');
-                subplot(2, 2, 2);
-                display_3d_mesh(nodes, elements, reconstructed_mus(1:length(original_mus)), 'Reconstructed mus');
-                subplot(2, 2, 3);
-                display_3d_mesh(nodes, elements, original_mua, 'Original mua');
-                subplot(2, 2, 4);
-                display_3d_mesh(nodes, elements, reconstructed_mua(1:length(original_mua)), 'Reconstructed mua');
+                % Determine color limits for mus
+                mus_min = min(min(original_mus), min(reconstructed_mus));
+                mus_max = max(max(original_mus), max(reconstructed_mus));
+                
+                % Determine color limits for mua
+                mua_min = min(min(original_mua), min(reconstructed_mua));
+                mua_max = max(max(original_mua), max(reconstructed_mua));
+                
+                % Update the figures with shared colorbars
+                display_3d_mesh(hAxes(1), nodes, elements, original_mus, ['Original mus (Subfolder ' num2str(i) ')'], mus_min, mus_max);
+                display_3d_mesh(hAxes(2), nodes, elements, reconstructed_mus, ['Reconstructed mus (Subfolder ' num2str(i) ')'], mus_min, mus_max);
+                display_3d_mesh(hAxes(3), nodes, elements, original_mua, ['Original mua (Subfolder ' num2str(i) ')'], mua_min, mua_max);
+                display_3d_mesh(hAxes(4), nodes, elements, reconstructed_mua, ['Reconstructed mua (Subfolder ' num2str(i) ')'], mua_min, mua_max);
 
-                pause(2);
-                input("press enter to continue");
-                close all;
+                pause(0.2);
+                input("Press enter to display the next subfolder");
             end
         end
     end
 
-    function display_3d_mesh(nodes, elements, values, title_str)        
+    function display_3d_mesh(hAx, nodes, elements, values, title_str, cmin, cmax)        
         % Plot the mesh using trisurf
-        trisurf(elements, nodes(:, 1), nodes(:, 2), nodes(:, 3), values, 'EdgeColor', 'none', 'FaceAlpha', 0.025);
+        axes(hAx); % Make hAx the current axes
+        trisurf(elements, nodes(:, 1), nodes(:, 2), nodes(:, 3), values, 'EdgeColor', 'none', 'FaceAlpha', 0.04);
         title(title_str);
         xlabel('X');
         ylabel('Y');
         zlabel('Z');
         colorbar;
+        caxis([cmin cmax]);
         axis equal;
         view(3);
         camlight; 
