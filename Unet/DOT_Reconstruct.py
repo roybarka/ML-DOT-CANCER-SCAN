@@ -11,10 +11,9 @@ from tkinter import filedialog
 import numpy as np
 
 
-class UNetPlusPlus(nn.Module):
+class UNet(nn.Module):
     def __init__(self, in_channels, out_channels_mus, out_channels_mua):
-        super(UNetPlusPlus, self).__init__()
-        # Define your UNet++ layers here, including convolutional blocks, upsampling, and skip connections
+        super(UNet, self).__init__()
 
         self.enc1 = self.conv_block(in_channels, 64)
         self.enc2 = self.conv_block(64, 128)
@@ -152,7 +151,7 @@ def train_model():
     val_loader = DataLoader(val_dataset, batch_size=16, shuffle=False)
 
     # Define instantiation
-    model = UNetPlusPlus(in_channels=1, out_channels_mus=1, out_channels_mua=1)
+    model = UNet(in_channels=1, out_channels_mus=1, out_channels_mua=1)
 
     choice = 't'
     while choice not in ['y', 'n']:
@@ -253,7 +252,7 @@ def reconstruct_results():
         print("No state dict selected.")
         return
 
-    model = UNetPlusPlus(in_channels=1, out_channels_mus=1, out_channels_mua=1)
+    model = UNet(in_channels=1, out_channels_mus=1, out_channels_mua=1)
     model.load_state_dict(torch.load(state_dict_path))
     model.eval()
 
@@ -293,7 +292,7 @@ def main():
         elif choice == '3':
             break
         else:
-            print("Invalid choice. Please enter 1, 2, or 3.")
+            print("Invalid choice.")
 
 
 if __name__ == "__main__":

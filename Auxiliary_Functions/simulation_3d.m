@@ -5,9 +5,12 @@ function simulation_3d(mat_path, mua_bkg, mus_bkg, ref_bkg, tumor_mua, tumor_mus
     [mesh_refined, tumor_nodes_idx] = project_meshrefine(mesh.ForwardMesh, centroid, radius, 0.1);
     
     [simpath, ~, ~] = fileparts(mat_path);
+    filename = 'mesh_refined.mat';
+    msh_path = fullfile(simpath, filename);
+    save(msh_path, 'mesh_refined');
+
     filename = 'mesh_refined.msh';
     msh_path = fullfile(simpath, filename);
-    
     conv_nodes_elements_arrays_to_msh(mesh_refined.node, mesh_refined.elem, msh_path, 4);
     
     % Calculate the min and max of X, Y, Z in the mesh nodes

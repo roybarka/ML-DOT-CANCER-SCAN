@@ -29,7 +29,7 @@ function compare_reconstruction()
         end
         
         % Look for the required files in the current subfolder
-        mesh_file = fullfile(subfolder, 'mesh_refined.msh');        
+        mesh_file = fullfile(subfolder, 'mesh_refined.mat');        
         config_file = fullfile(subfolder, 'simulation_config_and_results.mat');
         reconstructed_mus_file = fullfile(subfolder, 'reconstructed_mus.mat');
         reconstructed_mua_file = fullfile(subfolder, 'reconstructed_mua.mat');
@@ -39,7 +39,9 @@ function compare_reconstruction()
             config_data = load(config_file);
             reconstructed_mus = load(reconstructed_mus_file);
             reconstructed_mua = load(reconstructed_mua_file);
-            [nodes, elements] = conv_msh_to_nodes_elements_arrays(mesh_file);
+            mesh = load(mesh_file);
+            nodes = mesh.mesh_refined.node;
+            elements = mesh.mesh_refined.elem;
 
             % Check for the required variables
             if isfield(config_data, 'mus') && isfield(config_data, 'mua')
