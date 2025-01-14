@@ -1,76 +1,81 @@
-function [mesh_refined, nodeIndicesWithinRadius] = project_meshrefine(mesh,centroid,radius,maxvol)
-%
-% Based on DigiBreast Meshrefine function
-%
-% Refine the input mesh within a spherical region centered at centroid.
-%
-% Original Authors: Bin Deng (bdeng1 <at> nmr.mgh.harvard.edu)
-%                   Qianqian Fang (fangq <at> nmr.mgh.harvard.edu)
-%
-% input:
+function [mesh_refined, nodeIndicesWithinRegion] = project_meshrefine(mesh, centroid, radius, height, maxvol, shapeType)
+% Refine the input mesh within a spherical or cylindrical region centered at centroid.
+% 
+% Input:
 %   mesh: a struct with at least two fields "node" and "elem"
-%         mesh.node: existing tetrahedral mesh node list (N x 3 array, in length unit)
-%         mesh.elem: existing tetrahedral element list (M x 4 array)
-%         mesh.value: (optional) value list, one node can associate with K values (N x K array, K>=1)
-%   centroid: [x,y,z] coordinates of the center of desired refine region (in length unit)
-%   radius: radius of the sperical refined mesh region (in length unit)
-%   maxvol: maximum element volume
-%           For the DigiBreast phantom, the applied value is 0.1 (mm^3) for
-%           forward mesh and 1 (mm^3) for reconstruction mesh.
+%   centroid: [x, y, z] coordinates of the center of the desired refined region (in length unit)
+%   radius: radius of the spherical or cylindrical refined region (in length unit)
+%   height: height of the cylindrical refined region (ignored if shapeType is 'sphere')
+%   maxvol: maximum element volume for the refinement
+%   shapeType: 'sphere' or 'cylinder' to choose the region type
 %
-% output:
-%    mesh_refined: a struct with two fields containing the refined "node" (in length unit) and "elem" lists                      
-%
-% dependency:
-%    this function requires "meshrefine" and "meshcentroid" from iso2mesh toolbox.
+% Output:
+%   mesh_refined: a struct with refined "node" and "elem" lists
+%   nodeIndicesWithinRegion: indices of nodes within the refined region
 
 
-if(nargin<2)
-    error('you must provide at least two inputs - mesh and centroid');
+if nargin < 5
+    error('You must provide at least five inputs: mesh, centroid, radius, height, and maxvol.');
 end
 
-if(nargin<3)
-    radius=10;
+if nargin < 6
+    shapeType = 'sphere'; % Default to sphere
 end
 
-if(nargin<4)
-    maxvol=0.1;
+if ~isstruct(mesh) || ~isfield(mesh, 'node') || ~isfield(mesh, 'elem')
+    error('The mesh input must be a struct with node and elem fields');
 end
 
-if(~isstruct(mesh) || ~isfield(mesh,'node') || ~isfield(mesh,'elem'))
-    error('the mesh input must be a struct with node and elem fields')
-end
-
-% look for all tetrahedral elements whos centers are within the radius from the centroid
-% set the desired maximum volume to a maxvol for those elements
-% Calculate the centroid of each element
-
+% Calculate centroids of elements
 c0 = meshcentroid(mesh.node, mesh.elem);
 
-% Calculate distance from each element's centroid to the given centroid
-dist = c0 - repmat(centroid, [size(mesh.elem,1), 1]);
-dist = sqrt(sum(dist.*dist, 2));
-
 % Initialize sizing field
-sz = zeros(size(mesh.elem,1), 1); % sizing field
-% Set sizing field for elements within specified radius
-sz(dist < radius) = maxvol;
+sz = zeros(size(mesh.elem, 1), 1);
 
-% refine the mesh
-[node_refine,elem_refine]=meshrefine(mesh.node,mesh.elem,sz);
+% Select region type using switch-case
+switch lower(shapeType)
+    case 'sphere'
+        % Calculate distances from element centroids to the sphere center
+        dist = sqrt(sum((c0 - centroid).^2, 2));
+        % Set sizing field for elements within the spherical region
+        sz(dist < radius) = maxvol;
 
+    case 'cylinder'
+        if nargin < 4
+            error('Height is required for cylindrical refinement.');
+        end
+        % Calculate radial distances (in the XY-plane) and axial distances (along Z)
+        dist_radial = sqrt((c0(:, 1) - centroid(1)).^2 + (c0(:, 2) - centroid(2)).^2);
+        dist_axial = abs(c0(:, 3) - centroid(3));
+        % Set sizing field for elements within the cylindrical region
+        sz(dist_radial < radius & dist_axial < height / 2) = maxvol;
+
+    otherwise
+        error('Invalid shapeType. Use ''sphere'' or ''cylinder''.');
+end
+
+% Refine the mesh
+[node_refine, elem_refine] = meshrefine(mesh.node, mesh.elem, sz);
+
+% Recalculate centroids of the refined mesh
 c0 = meshcentroid(node_refine, elem_refine);
 
-% Calculate distance from each element's centroid to the given centroid
-dist = c0 - repmat(centroid, [size(elem_refine,1), 1]);
-dist = sqrt(sum(dist.*dist, 2));
+% Determine the region again for refined elements
+switch lower(shapeType)
+    case 'sphere'
+        dist = sqrt(sum((c0 - centroid).^2, 2));
+        elementsWithinRegion = find(dist < radius);
 
-% Find elements within the specified radius
-elementsWithinRadius = find(dist < radius);
+    case 'cylinder'
+        dist_radial = sqrt((c0(:, 1) - centroid(1)).^2 + (c0(:, 2) - centroid(2)).^2);
+        dist_axial = abs(c0(:, 3) - centroid(3));
+        elementsWithinRegion = find(dist_radial < radius & dist_axial < height / 2);
+end
 
-% Get node indices for these elements
-nodeIndicesWithinRadius = unique(elem_refine(elementsWithinRadius, :));
+% Get node indices for the elements within the specified region
+nodeIndicesWithinRegion = unique(elem_refine(elementsWithinRegion, :));
 
-mesh_refined.node=node_refine;
-mesh_refined.elem=elem_refine;
-
+% Return the refined mesh
+mesh_refined.node = node_refine;
+mesh_refined.elem = elem_refine;
+end

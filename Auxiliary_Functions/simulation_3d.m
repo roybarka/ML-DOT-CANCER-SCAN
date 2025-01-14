@@ -1,8 +1,12 @@
-function simulation_3d(mat_path, mua_bkg, mus_bkg, ref_bkg, tumor_mua, tumor_mus, radius, nqm, multiple_flag)
+function simulation_3d(mat_path, mua_bkg, mus_bkg, ref_bkg, tumor_mua, tumor_mus, radius,height, shapeType, nqm, multiple_flag, center, center_rand_flag)
     mesh = open(mat_path);
-    randRowIndex = randi(size(mesh.ForwardMesh.node, 1)); % Generate a random row index
-    centroid = mesh.ForwardMesh.node(randRowIndex, :); % Select the random row
-    [mesh_refined, tumor_nodes_idx] = project_meshrefine(mesh.ForwardMesh, centroid, radius, 0.1);
+    if  center_rand_flag
+        randRowIndex = randi(size(mesh.ForwardMesh.node, 1)); % Generate a random row index
+        centroid = mesh.ForwardMesh.node(randRowIndex, :); % Select the random row
+    else
+        centroid = center;
+    end    
+    [mesh_refined, tumor_nodes_idx] = project_meshrefine(mesh.ForwardMesh, centroid, radius,height, 0.1, shapeType);
     
     [simpath, ~, ~] = fileparts(mat_path);
     filename = 'mesh_refined.mat';
