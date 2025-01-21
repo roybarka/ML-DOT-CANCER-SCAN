@@ -306,8 +306,19 @@ def reconstruct_results():
     if not state_dict_path:
         print("No state dict selected.")
         return
+    print("Choose model:")
+    print("1. UNet")
+    print("2. ResUNet")
+    model_choice = input("Enter your choice: ")
 
-    model = UNet(in_channels=1, out_channels_mus=1, out_channels_mua=1)
+    if model_choice == '1':
+        model = UNet(in_channels=1, out_channels_mus=1, out_channels_mua=1)
+    elif model_choice == '2':
+        model = ResUNet(in_channels=1, out_channels_mus=1, out_channels_mua=1)
+    else:
+        print("Invalid choice. Defaulting to UNet.")
+        model = UNet(in_channels=1, out_channels_mus=1, out_channels_mua=1)
+
     model.load_state_dict(torch.load(state_dict_path))
     model.eval()
 
